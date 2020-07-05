@@ -1,0 +1,9 @@
+union Foo @bar
+
+union Foo @bar = Baz
+
+union Foo @bar = Baz | Bax
+
+union Foo @bar = | Baz
+
+union Foo @bar = | Baz | Bax

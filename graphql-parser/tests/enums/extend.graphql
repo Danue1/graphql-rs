@@ -1,0 +1,9 @@
+extend enum Foo {
+  Bar
+}
+
+extend enum Foo @bar
+
+extend enum Foo @bar {
+  Baz
+}

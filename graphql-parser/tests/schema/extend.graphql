@@ -1,0 +1,25 @@
+extend schema {
+  query: Query
+}
+
+extend schema {
+  mutation: Mutation
+}
+
+extend schema {
+  subscription: Subscription
+}
+
+extend schema @bar
+
+extend schema @bar {
+  query: Query
+}
+
+extend schema @bar {
+  mutation: Mutation
+}
+
+extend schema @bar {
+  subscription: Subscription
+}

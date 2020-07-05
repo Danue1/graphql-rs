@@ -1,0 +1,10 @@
+enum Foo
+
+enum Foo {
+  Bar
+}
+
+enum Foo {
+  Bar
+  Baz
+}

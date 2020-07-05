@@ -1,0 +1,17 @@
+extend union Foo = Bar
+
+extend union Foo = Bar | Baz
+
+extend union Foo = | Bar
+
+extend union Foo = | Bar | Baz
+
+extend union Foo @bar
+
+extend union Foo @bar = Baz
+
+extend union Foo @bar = Baz | Bax
+
+extend union Foo @bar = | Baz
+
+extend union Foo @bar = | Baz | Bax

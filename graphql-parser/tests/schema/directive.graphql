@@ -1,0 +1,11 @@
+schema @bar {
+  query: Query
+}
+
+schema @bar {
+  mutation: Mutation
+}
+
+schema @bar {
+  subscription: Subscription
+}

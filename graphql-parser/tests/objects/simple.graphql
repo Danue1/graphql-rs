@@ -1,0 +1,10 @@
+type Foo
+
+type Foo {
+  bar: Bar
+}
+
+type Foo {
+  bar: Bar
+  baz: Baz
+}

@@ -1,0 +1,5 @@
+type Foo implements Bar
+
+type Foo implements Bar {
+  baz: Baz
+}

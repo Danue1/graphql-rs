@@ -1,0 +1,21 @@
+extend type Foo {
+  bar: Bar
+}
+
+extend type Foo @foo
+
+extend type Foo @foo {
+  bar: Bar
+}
+
+extend type Foo implements Bar
+
+extend type Foo implements Bar {
+  baz: Baz
+}
+
+extend type Foo implements Bar @baz
+
+extend type Foo implements Bar @baz {
+  bax: Bax
+}

@@ -1,0 +1,32 @@
+schema {
+  query: Query
+}
+
+schema {
+  mutation: Mutation
+}
+
+schema {
+  subscription: Subscription
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+schema {
+  query: Query
+  subscription: Subscription
+}
+
+schema {
+  mutation: Mutation
+  subscription: Subscription
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}

@@ -1,0 +1,12 @@
+type Foo {
+  bar(a: A): Bool
+}
+
+type Foo {
+  bar(a: A): Bool
+  baz(b: B): Bool
+}
+
+type Foo {
+  bar(a: A b: B): Bar
+}

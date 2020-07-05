@@ -1,0 +1,12 @@
+interface Foo {
+  bar(a: A): Bool
+}
+
+interface Foo {
+  bar(a: A): Bool
+  baz(b: B): Bool
+}
+
+interface Foo {
+  bar(a: A b: B): Bar
+}

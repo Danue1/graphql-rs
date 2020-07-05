@@ -1,0 +1,12 @@
+input Foo {
+  bar(a: A = ""): Bool
+}
+
+input Foo {
+  bar(a: A = ""): Bool
+  baz(b: B = ""): Bool
+}
+
+input Foo {
+  bar(a: A = "" b: B = ""): Bar
+}

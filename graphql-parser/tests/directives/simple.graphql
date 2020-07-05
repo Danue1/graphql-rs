@@ -1,0 +1,23 @@
+directive @foo on QUERY
+directive @foo on MUTATION
+directive @foo on SUBSCRIPTION
+directive @foo on FIELD
+directive @foo on FRAGMENT_DEFINITION
+directive @foo on FRAGMENT_SPREAD
+directive @foo on INLINE_FRAGMENT
+
+directive @foo on SCHEMA
+directive @foo on SCALAR
+directive @foo on OBJECT
+directive @foo on FIELD_DEFINITION
+directive @foo on ARGUMENT_DEFINITION
+directive @foo on INTERFACE
+directive @foo on UNION
+directive @foo on ENUM
+directive @foo on ENUM_VALUE
+directive @foo on INPUT_OBJECT
+directive @foo on INPUT_FIELD_DEFINITION
+
+directive @foo on QUERY | QUERY
+directive @foo on | QUERY
+directive @foo on | QUERY | QUERY

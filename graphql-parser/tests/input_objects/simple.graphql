@@ -1,0 +1,10 @@
+input Foo
+
+input Foo {
+  bar: Bar
+}
+
+input Foo {
+  bar: Bar
+  baz: Baz
+}

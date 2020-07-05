@@ -1,0 +1,9 @@
+extend input Foo {
+  bar: Bar
+}
+
+extend input Foo @bar
+
+extend input Foo @bar {
+  baz: Baz
+}
