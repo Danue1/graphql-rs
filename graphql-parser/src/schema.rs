@@ -117,7 +117,6 @@ fn directive_definition(s: Span) -> Result<DirectiveDefinition> {
             positioned(name),
             ignore_token0,
             field_argument_list,
-            ignore_token0,
             tag("on"),
             alt((
                 map(tuple((ignore_token1, pipeline, ignore_token0)), |_| ()),
@@ -131,7 +130,7 @@ fn directive_definition(s: Span) -> Result<DirectiveDefinition> {
                 ),
             ),
         )),
-        |(description, _, _, _, _, name, _, argument_list, _, _, _, location_list)| {
+        |(description, _, _, _, _, name, _, argument_list, _, _, location_list)| {
             DirectiveDefinition {
                 description,
                 name,

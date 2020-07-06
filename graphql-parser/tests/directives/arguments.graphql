@@ -1,0 +1,6 @@
+directive @foo(a: B) on QUERY
+directive @foo(a: B!) on QUERY
+directive @foo(a: [B]) on QUERY
+directive @foo(a: [B]!) on QUERY
+directive @foo(a: [B!]) on QUERY
+directive @foo(a: [B!]!) on QUERY

@@ -66,8 +66,8 @@ pub(crate) fn hashtag_description(s: Span) -> Result<()> {
 
 pub(crate) fn string(s: Span) -> Result<String> {
     map(
-        tuple((double_quote, opt(is_not(r#""\r\n"#)), double_quote)),
-        |(_, string, _): ((), Option<Span>, ())| {
+        tuple((double_quote, opt(is_not("\"\r\n")), double_quote)),
+        |(_, string, _)| {
             string
                 .map(|s| s.fragment().to_string())
                 .unwrap_or_else(|| "".to_owned())
