@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 mod ast;
 mod error;
 mod position;

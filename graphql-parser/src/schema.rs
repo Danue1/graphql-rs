@@ -38,15 +38,9 @@ fn extend(s: Span) -> Result<bool> {
 
 fn definition(s: Span) -> Result<Definition> {
     alt((
-        map(positioned(schema_definition), |definition| {
-            Definition::Schema(definition)
-        }),
-        map(positioned(type_definition), |definition| {
-            Definition::Type(definition)
-        }),
-        map(positioned(directive_definition), |definition| {
-            Definition::Directive(definition)
-        }),
+        map(positioned(schema_definition), Definition::Schema),
+        map(positioned(type_definition), Definition::Type),
+        map(positioned(directive_definition), Definition::Directive),
     ))(s)
 }
 
@@ -102,24 +96,12 @@ fn schema_definition(s: Span) -> Result<SchemaDefinition> {
 
 fn type_definition(s: Span) -> Result<TypeDefinition> {
     alt((
-        map(positioned(scalar_type), |definition| {
-            TypeDefinition::Scalar(definition)
-        }),
-        map(positioned(object_type), |definition| {
-            TypeDefinition::Object(definition)
-        }),
-        map(positioned(interface_type), |definition| {
-            TypeDefinition::Interface(definition)
-        }),
-        map(positioned(union_type), |definition| {
-            TypeDefinition::Union(definition)
-        }),
-        map(positioned(enum_type), |definition| {
-            TypeDefinition::Enum(definition)
-        }),
-        map(positioned(input_object_type), |definition| {
-            TypeDefinition::InputObject(definition)
-        }),
+        map(positioned(scalar_type), TypeDefinition::Scalar),
+        map(positioned(object_type), TypeDefinition::Object),
+        map(positioned(interface_type), TypeDefinition::Interface),
+        map(positioned(union_type), TypeDefinition::Union),
+        map(positioned(enum_type), TypeDefinition::Enum),
+        map(positioned(input_object_type), TypeDefinition::InputObject),
     ))(s)
 }
 
@@ -148,7 +130,7 @@ fn directive_definition(s: Span) -> Result<DirectiveDefinition> {
                 ),
             ),
         )),
-        move |(description, _, _, _, _, name, _, argument_list, _, _, _, location_list)| {
+        |(description, _, _, _, _, name, _, argument_list, _, _, _, location_list)| {
             DirectiveDefinition {
                 description,
                 name,
@@ -181,7 +163,6 @@ fn scalar_type(s: Span) -> Result<ScalarType> {
 
 fn object_type(s: Span) -> Result<ObjectType> {
     let (s, is_extend) = extend(s)?;
-
     let (s, (description, _, _, name, interface_list)) = tuple((
         description(is_extend),
         tag("type"),
@@ -203,7 +184,7 @@ fn object_type(s: Span) -> Result<ObjectType> {
             |interface_list| {
                 interface_list
                     .map(|(_, _, _, interface_list)| interface_list)
-                    .unwrap_or_else(|| vec![])
+                    .unwrap_or_else(Vec::new)
             },
         ),
     ))(s)?;
@@ -444,7 +425,7 @@ fn field_argument_list(s: Span) -> Result<Vec<Positioned<FieldArgument>>> {
         |field_argument_list| {
             field_argument_list
                 .map(|(_, _, field_argument, _, _, _)| field_argument)
-                .unwrap_or_else(|| vec![])
+                .unwrap_or_else(Vec::new)
         },
     )(s)
 }
@@ -511,7 +492,7 @@ fn ty(s: Span) -> Result<Type> {
 }
 
 fn ty_named(s: Span) -> Result<Type> {
-    map(name, |name| Type::Named(name))(s)
+    map(name, Type::Named)(s)
 }
 
 fn ty_list(s: Span) -> Result<Type> {
@@ -588,7 +569,7 @@ fn value_numeric(s: Span) -> Result<Value> {
                                 numeric
                             )
                         })
-                        .unwrap_or("".to_owned())
+                        .unwrap_or_else(|| "".to_owned())
                 },
             ),
         )),
@@ -616,13 +597,13 @@ fn value_object(s: Span) -> Result<Value> {
     map(
         separated_list(
             ignore_token1,
-            map(
-                tuple((name, ignore_token0, colon, ignore_token0, value)),
-                |(name, _, _, _, value)| (name, value),
-            ),
+            tuple((name, ignore_token0, colon, ignore_token0, value)),
         ),
         |pair_list| {
-            let object: BTreeMap<String, Value> = pair_list.into_iter().collect();
+            let object: BTreeMap<String, Value> = pair_list
+                .into_iter()
+                .map(|(name, _, _, _, value)| (name, value))
+                .collect();
             Value::Object(object)
         },
     )(s)
@@ -693,13 +674,10 @@ mod tests {
                 if let Ok(entry) = entry {
                     let path = entry.path();
                     let source = std::fs::read_to_string(&path).unwrap();
-                    match parse_schema(source.as_str()) {
-                        Err(error) => {
-                            dbg!(path);
-                            dbg!(error);
-                            panic!();
-                        }
-                        _ => {}
+                    if let Err(error) = parse_schema(source.as_str()) {
+                        dbg!(path);
+                        dbg!(error);
+                        panic!();
                     };
                 }
             }

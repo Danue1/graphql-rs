@@ -1,4 +1,3 @@
-#[allow()]
 use crate::*;
 use nom::{
     branch::alt,
@@ -71,7 +70,7 @@ pub(crate) fn string(s: Span) -> Result<String> {
         |(_, string, _): ((), Option<Span>, ())| {
             string
                 .map(|s| s.fragment().to_string())
-                .unwrap_or("".to_owned())
+                .unwrap_or_else(|| "".to_owned())
         },
     )(s)
 }
@@ -99,7 +98,7 @@ pub(crate) fn ignore_token1(s: Span) -> Result<()> {
     )(s)
 }
 
-pub(crate) fn char_empty<'a>(c: char) -> impl Fn(Span) -> Result<()> {
+pub(crate) fn char_empty(c: char) -> impl Fn(Span) -> Result<()> {
     move |s: Span| map(char(c), |_| ())(s)
 }
 
