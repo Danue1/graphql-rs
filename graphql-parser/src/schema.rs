@@ -573,12 +573,12 @@ fn value_numeric(s: Span) -> Result<Value> {
                 },
             ),
         )),
-        |(hyphen, majority, minority, exponential)| {
+        |(sign, majority, minority, exponential)| {
             if minority.is_empty() && exponential.is_empty() {
-                let numeric = format!("{}{}", hyphen, majority);
+                let numeric = format!("{}{}", sign, majority);
                 Value::Int(numeric.parse().unwrap())
             } else {
-                let numeric = format!("{}{}{}{}", hyphen, majority, minority, exponential);
+                let numeric = format!("{}{}{}{}", sign, majority, minority, exponential);
                 Value::Float(numeric.parse().unwrap())
             }
         },
