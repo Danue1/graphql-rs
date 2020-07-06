@@ -1,0 +1,31 @@
+type Foo {
+  bar(a: A = 0): Bar
+}
+
+type Foo {
+  bar(a: A = 1): Bar
+}
+
+type Foo {
+  bar(a: A = 10): Bar
+}
+
+type Foo {
+  bar(a: A = -0): Bar
+}
+
+type Foo {
+  bar(a: A = -1): Bar
+}
+
+type Foo {
+  bar(a: A = -0): Bar
+}
+
+type Foo {
+  bar(a: A = -1): Bar
+}
+
+type Foo {
+  bar(a: A = -10): Bar
+}

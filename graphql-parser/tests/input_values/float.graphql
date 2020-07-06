@@ -1,0 +1,70 @@
+type Simple {
+  bar(a: A = 0.0): Bar
+  bar(a: A = 0.1): Bar
+  bar(a: A = 10.0): Bar
+  bar(a: A = 10.1): Bar
+  bar(a: A = -0.0): Bar
+  bar(a: A = -0.1): Bar
+  bar(a: A = -10.0): Bar
+  bar(a: A = -10.1): Bar
+}
+
+type SimpleExponential {
+  bar(a: A = 0e0): Bar
+  bar(a: A = 1e0): Bar
+  bar(a: A = 10e0): Bar
+  bar(a: A = -0e0): Bar
+  bar(a: A = -1e0): Bar
+  bar(a: A = -10e0): Bar
+}
+
+type SimpleExponentialPlusSign {
+  bar(a: A = 0e+0): Bar
+  bar(a: A = 1e+0): Bar
+  bar(a: A = 10e+0): Bar
+  bar(a: A = -0e+0): Bar
+  bar(a: A = -1e+0): Bar
+  bar(a: A = -10e+0): Bar
+}
+
+type SimpleExponentialMinusSign {
+  bar(a: A = 0e-0): Bar
+  bar(a: A = 1e-0): Bar
+  bar(a: A = 10e-0): Bar
+  bar(a: A = -0e-0): Bar
+  bar(a: A = -1e-0): Bar
+  bar(a: A = -10e-0): Bar
+}
+
+type DecimalExponentialSimple {
+  bar(a: A = 0.0e0): Bar
+  bar(a: A = 0.1e0): Bar
+  bar(a: A = 10.0e0): Bar
+  bar(a: A = 10.1e0): Bar
+  bar(a: A = -0.0e0): Bar
+  bar(a: A = -0.1e0): Bar
+  bar(a: A = -10.0e0): Bar
+  bar(a: A = -10.1e0): Bar
+}
+
+type DecimalExponentialPlusSign {
+  bar(a: A = 0.0e+0): Bar
+  bar(a: A = 0.1e+0): Bar
+  bar(a: A = 10.0e+0): Bar
+  bar(a: A = 10.1e+0): Bar
+  bar(a: A = -0.0e+0): Bar
+  bar(a: A = -0.1e+0): Bar
+  bar(a: A = -10.0e+0): Bar
+  bar(a: A = -10.1e+0): Bar
+}
+
+type DecimalExponentialMinusSign {
+  bar(a: A = 0.0e-0): Bar
+  bar(a: A = 0.1e-0): Bar
+  bar(a: A = 10.0e-0): Bar
+  bar(a: A = 10.1e-0): Bar
+  bar(a: A = -0.0e-0): Bar
+  bar(a: A = -0.1e-0): Bar
+  bar(a: A = -10.0e-0): Bar
+  bar(a: A = -10.1e-0): Bar
+}

@@ -12,7 +12,7 @@ pub(crate) fn name(s: Span) -> Result<String> {
     map(
         tuple((
             alt((alphabet, tag("_"))),
-            many0(alt((alphabet, numeric, tag("_")))),
+            many0(alt((alphabet, digit, tag("_")))),
         )),
         |(first, tail)| {
             let tail: String = tail.iter().map(|s| s.fragment().to_owned()).collect();
@@ -75,11 +75,15 @@ pub(crate) fn string(s: Span) -> Result<String> {
     )(s)
 }
 
-pub(crate) fn nonzero_numeric(s: Span) -> Result<Span> {
-    is_a("123456789")(s)
+pub(crate) fn is_nonzero_digit(c: char) -> bool {
+    matches!(c, '1'..='9')
 }
 
-pub(crate) fn numeric(s: Span) -> Result<Span> {
+pub(crate) fn is_digit(c: char) -> bool {
+    matches!(c, '0'..='9')
+}
+
+pub(crate) fn digit(s: Span) -> Result<Span> {
     is_a("0123456789")(s)
 }
 
@@ -122,6 +126,7 @@ char_empty!(
   '#' => hashtag,
   '.' => dot,
   ':' => colon,
+  '+' => plus,
   '-' => hyphen,
   '=' => equal,
   '@' => at,

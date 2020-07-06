@@ -1,7 +1,8 @@
 use crate::*;
 use nom::{
     branch::alt,
-    bytes::complete::tag,
+    bytes::complete::{tag, take, take_while, take_while1},
+    character::complete::char,
     combinator::{all_consuming, map, opt},
     error::ErrorKind,
     multi::{many0, many1, separated_list},
@@ -528,6 +529,7 @@ fn value(s: Span) -> Result<Value> {
 }
 
 fn value_null(s: Span) -> Result<Value> {
+    dbg!(s);
     map(tag("null"), |_| Value::Null)(s)
 }
 
@@ -539,50 +541,63 @@ fn value_boolean(s: Span) -> Result<Value> {
 }
 
 fn value_numeric(s: Span) -> Result<Value> {
-    map(
-        tuple((
-            map(opt(hyphen), |sign| if sign.is_some() { "-" } else { "+" }),
-            map(tuple((nonzero_numeric, opt(numeric))), |(first, second)| {
-                format!(
-                    "{}{}",
-                    first,
-                    second.map(|s| s.fragment().to_owned()).unwrap_or("")
-                )
-            }),
-            map(opt(tuple((dot, numeric))), |numeric| {
-                numeric
-                    .map(|(_, numeric)| numeric.fragment().to_owned())
-                    .unwrap_or("")
-            }),
-            map(
-                opt(tuple((
-                    alt((tag("e"), tag("E"))),
-                    opt(alt((tag("-"), tag("+")))),
-                    numeric,
-                ))),
-                |numeric| {
-                    numeric
-                        .map(|(_, sign, numeric)| {
-                            format!(
-                                "E{}{}",
-                                sign.map(|sign| sign.fragment().to_owned()).unwrap_or("+"),
-                                numeric
-                            )
-                        })
-                        .unwrap_or_else(|| "".to_owned())
-                },
-            ),
-        )),
-        |(sign, majority, minority, exponential)| {
-            if minority.is_empty() && exponential.is_empty() {
-                let numeric = format!("{}{}", sign, majority);
-                Value::Int(numeric.parse().unwrap())
+    enum Numeric {
+        Int(usize),
+        Float(usize),
+    }
+
+    let sign_to_int = |sign: Option<_>| if sign.is_some() { 1 } else { 0 };
+    let len = |s: Span| s.fragment().len();
+    fn zero<O, F>(f: F) -> impl Fn(Span) -> Result<O>
+    where
+        F: Copy + Fn(usize) -> O,
+    {
+        move |s: Span| map(take(0usize), |_| f(0))(s)
+    }
+
+    let (ss, sign) = map(opt(hyphen), sign_to_int)(s)?;
+
+    let (ss, majority) = alt((
+        map(tag("0"), |_| 1),
+        map(
+            tuple((take_while1(is_nonzero_digit), take_while(is_digit))),
+            |(nonzero_digit, digit)| len(nonzero_digit) + len(digit),
+        ),
+    ))(ss)?;
+
+    match alt((
+        map(tuple((dot, take_while(is_digit))), move |(_, minority)| {
+            if minority.fragment().is_empty() {
+                Numeric::Int(sign + majority)
             } else {
-                let numeric = format!("{}{}{}{}", sign, majority, minority, exponential);
-                Value::Float(numeric.parse().unwrap())
+                Numeric::Float(1 + len(minority))
             }
-        },
-    )(s)
+        }),
+        zero(Numeric::Float),
+    ))(ss)?
+    {
+        (_, Numeric::Int(size)) => {
+            let (s, numeric) = take(size)(s)?;
+            Ok((s, Value::Int(numeric.fragment().parse().unwrap())))
+        }
+        (ss, Numeric::Float(minority)) => {
+            let (_, exponential) = alt((
+                map(
+                    tuple((
+                        alt((char('e'), char('E'))),
+                        opt(alt((plus, hyphen))),
+                        take_while1(is_digit),
+                    )),
+                    |(_, sign, digit)| 1 + sign_to_int(sign) + len(digit),
+                ),
+                zero(|size| size),
+            ))(ss)?;
+
+            let (s, numeric) = take(sign + majority + minority + exponential)(s)?;
+
+            Ok((s, Value::Float(numeric.fragment().parse().unwrap())))
+        }
+    }
 }
 
 fn value_enum(s: Span) -> Result<Value> {
@@ -662,6 +677,7 @@ mod tests {
             "tests/directives",
             "tests/enums",
             "tests/input_objects",
+            "tests/input_values",
             "tests/interfaces",
             "tests/objects",
             "tests/scalars",
