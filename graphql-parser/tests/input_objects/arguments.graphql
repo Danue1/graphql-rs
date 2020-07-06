@@ -10,3 +10,23 @@ input Foo {
 input Foo {
   bar(a: A b: B): Bar
 }
+
+input Foo {
+  bar(a: A!): Bool
+}
+
+input Foo {
+  bar(a: [A]): Bool
+}
+
+input Foo {
+  bar(a: [A!]): Bool
+}
+
+input Foo {
+  bar(a: [A]!): Bool
+}
+
+input Foo {
+  bar(a: [A!]!): Bool
+}

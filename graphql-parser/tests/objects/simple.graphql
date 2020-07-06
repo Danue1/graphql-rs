@@ -8,3 +8,23 @@ type Foo {
   bar: Bar
   baz: Baz
 }
+
+type Foo {
+  bar: Bar!
+}
+
+type Foo {
+  bar: [Bar]
+}
+
+type Foo {
+  bar: [Bar]!
+}
+
+type Foo {
+  bar: [Bar!]
+}
+
+type Foo {
+  bar: [Bar!]!
+}

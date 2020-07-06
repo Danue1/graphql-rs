@@ -1,0 +1,7 @@
+type Foo {
+  bar(a: A = ""): Bar
+}
+
+type Foo {
+  bar(a: A = "C"): Bar
+}

@@ -550,7 +550,7 @@ fn value_numeric(s: Span) -> Result<Value> {
     let len = |s: Span| s.fragment().len();
     fn zero<O, F>(f: F) -> impl Fn(Span) -> Result<O>
     where
-        F: Copy + Fn(usize) -> O,
+        F: Fn(usize) -> O,
     {
         move |s: Span| map(take(0usize), |_| f(0))(s)
     }

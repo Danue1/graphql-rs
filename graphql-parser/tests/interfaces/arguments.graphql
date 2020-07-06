@@ -8,5 +8,25 @@ interface Foo {
 }
 
 interface Foo {
-  bar(a: A b: B): Bar
+  bar(a: A, b: B): Bar
+}
+
+interface Foo {
+  bar(a: A!): Bool
+}
+
+interface Foo {
+  bar(a: [A]): Bool
+}
+
+interface Foo {
+  bar(a: [A!]): Bool
+}
+
+interface Foo {
+  bar(a: [A]!): Bool
+}
+
+interface Foo {
+  bar(a: [A!]!): Bool
 }
