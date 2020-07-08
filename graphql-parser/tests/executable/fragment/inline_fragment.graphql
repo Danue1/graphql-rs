@@ -1,23 +1,23 @@
-mutation {
+fragment Foo on Bar {
   ... {
-    foo
-  }
-}
-
-mutation {
-  ... @foo {
-    bar
-  }
-}
-
-mutation {
-  ... on Foo {
-    bar
-  }
-}
-
-mutation {
-  ... on Foo @bar {
     baz
+  }
+}
+
+fragment Foo on Bar {
+  ... @baz {
+    bax
+  }
+}
+
+fragment Foo on Bar {
+  ... on Baz {
+    bax
+  }
+}
+
+fragment Foo on Bar {
+  ... on Baz @bax {
+    bac
   }
 }
