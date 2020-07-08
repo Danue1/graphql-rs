@@ -1,1 +1,9 @@
-input Foo @bar
+input Foo {
+  bar: Bar
+}
+
+input Foo @foo
+
+input Foo @foo {
+  bar: Bar
+}

@@ -1,1 +1,9 @@
-interface Foo @bar
+interface Foo {
+  bar: Bar
+}
+
+interface Foo @foo
+
+interface Foo @foo {
+  bar: Bar
+}

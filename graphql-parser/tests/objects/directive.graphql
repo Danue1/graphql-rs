@@ -1,1 +1,15 @@
-type Foo @bar
+type Foo {
+  bar: Bar
+}
+
+type Foo @foo
+
+type Foo @foo {
+  bar: Bar
+}
+
+type Foo implements Bar @baz
+
+type Foo implements Bar @baz {
+  bax: Bax
+}

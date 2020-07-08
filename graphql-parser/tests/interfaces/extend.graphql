@@ -1,8 +1,8 @@
-extend interface Foo @foo
-
 extend interface Foo {
   bar: Bar
 }
+
+extend interface Foo @bar
 
 extend interface Foo @bar {
   baz: Baz
