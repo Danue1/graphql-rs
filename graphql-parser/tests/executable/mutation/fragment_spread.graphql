@@ -1,0 +1,7 @@
+mutation {
+  ...Foo
+}
+
+mutation {
+  ...Foo @bar
+}

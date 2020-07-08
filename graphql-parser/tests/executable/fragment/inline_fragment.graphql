@@ -1,0 +1,23 @@
+mutation {
+  ... {
+    foo
+  }
+}
+
+mutation {
+  ... @foo {
+    bar
+  }
+}
+
+mutation {
+  ... on Foo {
+    bar
+  }
+}
+
+mutation {
+  ... on Foo @bar {
+    baz
+  }
+}

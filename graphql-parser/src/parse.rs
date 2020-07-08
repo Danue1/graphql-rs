@@ -13,11 +13,11 @@ use std::collections::BTreeMap;
 
 const UNEXTEND: bool = false;
 
-pub fn parse_schema(source: &str) -> std::result::Result<Document, ParsingError> {
+pub fn parse_document(source: &str) -> std::result::Result<Document, ParsingError> {
     match all_consuming(map(
         tuple((
             many0(map(
-                tuple((ignore_token0, positioned(definition))),
+                tuple((ignore_token0, positioned(document_definition))),
                 |(_, definition)| definition,
             )),
             ignore_token0,
@@ -31,17 +31,70 @@ pub fn parse_schema(source: &str) -> std::result::Result<Document, ParsingError>
     }
 }
 
-fn extend(s: Span) -> Result<bool> {
-    map(opt(tuple((tag("extend"), ignore_token1))), |extend| {
-        extend.is_some()
-    })(s)
+fn document_definition(s: Span) -> Result<DocumentDefinition> {
+    alt((
+        map(positioned(schema_definition), DocumentDefinition::Schema),
+        map(positioned(type_definition), DocumentDefinition::Type),
+        map(
+            positioned(directive_definition),
+            DocumentDefinition::Directive,
+        ),
+        map(positioned(operation), DocumentDefinition::Operation),
+        map(positioned(fragment), DocumentDefinition::Fragment),
+    ))(s)
 }
 
-fn definition(s: Span) -> Result<Definition> {
+pub fn parse_type_system(source: &str) -> std::result::Result<TypeSystemDocument, ParsingError> {
+    match all_consuming(map(
+        tuple((
+            many0(map(
+                tuple((ignore_token0, positioned(type_system_definition))),
+                |(_, definition)| definition,
+            )),
+            ignore_token0,
+        )),
+        |(definition_list, _)| definition_list,
+    ))(LocatedSpan::new(source))
+    {
+        Ok((_, definition_list)) => Ok(TypeSystemDocument { definition_list }),
+        Err(Error(error)) => Err(error),
+        _ => std::unreachable!(),
+    }
+}
+
+fn type_system_definition(s: Span) -> Result<TypeSystemDefinition> {
     alt((
-        map(positioned(schema_definition), Definition::Schema),
-        map(positioned(type_definition), Definition::Type),
-        map(positioned(directive_definition), Definition::Directive),
+        map(positioned(schema_definition), TypeSystemDefinition::Schema),
+        map(positioned(type_definition), TypeSystemDefinition::Type),
+        map(
+            positioned(directive_definition),
+            TypeSystemDefinition::Directive,
+        ),
+    ))(s)
+}
+
+pub fn parse_executable(source: &str) -> std::result::Result<ExecutableDocument, ParsingError> {
+    match all_consuming(map(
+        tuple((
+            many0(map(
+                tuple((ignore_token0, positioned(executable_definition))),
+                |(_, definition)| definition,
+            )),
+            ignore_token0,
+        )),
+        |(definition_list, _)| definition_list,
+    ))(LocatedSpan::new(source))
+    {
+        Ok((_, definition_list)) => Ok(ExecutableDocument { definition_list }),
+        Err(Error(error)) => Err(error),
+        _ => std::unreachable!(),
+    }
+}
+
+fn executable_definition(s: Span) -> Result<ExecutableDefinition> {
+    alt((
+        map(positioned(operation), ExecutableDefinition::Operation),
+        map(positioned(fragment), ExecutableDefinition::Fragment),
     ))(s)
 }
 
@@ -60,11 +113,7 @@ fn schema_definition(s: Span) -> Result<SchemaDefinition> {
             ignore_token1,
             map(
                 tuple((
-                    alt((
-                        map(tag("query"), |_| OperationType::Query),
-                        map(tag("mutation"), |_| OperationType::Mutation),
-                        map(tag("subscription"), |_| OperationType::Subscription),
-                    )),
+                    operation_type,
                     ignore_token0,
                     colon,
                     ignore_token0,
@@ -128,25 +177,70 @@ fn directive_definition(s: Span) -> Result<DirectiveDefinition> {
                 ),
             ),
         )),
-        |(description, _, _, name, _, argument_list, _, _, location_list)| {
-            DirectiveDefinition {
-                description,
-                name,
-                argument_list,
-                location_list,
-            }
+        |(description, _, _, name, _, argument_list, _, _, location_list)| DirectiveDefinition {
+            description,
+            name,
+            argument_list,
+            location_list,
         },
     )(s)
 }
 
-fn directive_name(s: Span) -> Result<Positioned<String>> {
+fn operation(s: Span) -> Result<OperationDefinition> {
     map(
         tuple((
-            at,
-            ignore_token0,
-            positioned(name),
+            map(
+                opt(tuple((
+                    operation_type,
+                    ignore_token1,
+                    opt(map(
+                        tuple((positioned(name), ignore_token0)),
+                        |(name, _)| name,
+                    )),
+                    map(opt(variable_definition_list), |variable_list| {
+                        variable_list.unwrap_or_else(Vec::new)
+                    }),
+                    directive_list(UNEXTEND),
+                    ignore_token0,
+                ))),
+                |long_hand| {
+                    long_hand
+                        .map(|(ty, _, name, variable_list, directive_list, _)| {
+                            (ty, name, variable_list, directive_list)
+                        })
+                        .unwrap_or_else(|| (OperationType::Query, None, vec![], vec![]))
+                },
+            ),
+            selection_list,
         )),
-        |(_, _, name)| name
+        |((ty, name, variable_list, directive_list), selection_list)| OperationDefinition {
+            ty,
+            name,
+            variable_list,
+            selection_list,
+            directive_list,
+        },
+    )(s)
+}
+
+fn fragment(s: Span) -> Result<FragmentDefinition> {
+    map(
+        tuple((
+            definition_type("fragment"),
+            ignore_token1,
+            tag("on"),
+            ignore_token1,
+            positioned(name),
+            directive_list(UNEXTEND),
+            ignore_token0,
+            selection_list,
+        )),
+        |(name, _, _, _, on, directive_list, _, selection_list)| FragmentDefinition {
+            name,
+            on,
+            selection_list,
+            directive_list,
+        },
     )(s)
 }
 
@@ -192,10 +286,11 @@ fn object_type(s: Span) -> Result<ObjectType> {
                     .unwrap_or_else(Vec::new)
             },
         ),
-        directive_list(UNEXTEND)
+        directive_list(UNEXTEND),
     ))(s)?;
-    let (s, field_list) =
-        field_definition_list(is_extend && directive_list.is_empty() && interface_list.is_empty())(s)?;
+    let (s, field_list) = field_definition_list(
+        is_extend && directive_list.is_empty() && interface_list.is_empty(),
+    )(s)?;
 
     Ok((
         s,
@@ -327,15 +422,157 @@ fn input_object_type(s: Span) -> Result<InputObjectType> {
     ))
 }
 
+fn operation_type(s: Span) -> Result<OperationType> {
+    alt((
+        map(tag("query"), |_| OperationType::Query),
+        map(tag("mutation"), |_| OperationType::Mutation),
+        map(tag("subscription"), |_| OperationType::Subscription),
+    ))(s)
+}
+
+fn directive_name(s: Span) -> Result<Positioned<String>> {
+    map(
+        tuple((at, ignore_token0, positioned(name))),
+        |(_, _, name)| name,
+    )(s)
+}
+
+fn variable_definition_list(s: Span) -> Result<Vec<Positioned<VariableDefinition>>> {
+    map(
+        tuple((
+            left_parens,
+            many1(map(
+                tuple((ignore_token0, positioned(variable_definition))),
+                |(_, variable)| variable,
+            )),
+            ignore_token0,
+            right_parens,
+        )),
+        |(_, variable_definition_list, _, _)| variable_definition_list,
+    )(s)
+}
+
+fn variable_definition(s: Span) -> Result<VariableDefinition> {
+    map(
+        tuple((
+            dollar,
+            ignore_token0,
+            positioned(name),
+            ignore_token0,
+            colon,
+            ignore_token0,
+            positioned(ty),
+            opt(map(
+                tuple((ignore_token0, positioned(value))),
+                |(_, value)| value,
+            )),
+        )),
+        |(_, _, name, _, _, _, ty, default_value)| VariableDefinition {
+            name,
+            ty,
+            default_value,
+        },
+    )(s)
+}
+
+fn selection_list(s: Span) -> Result<Vec<Positioned<Selection>>> {
+    map(
+        tuple((
+            left_brace,
+            many1(map(
+                tuple((ignore_token0, positioned(selection))),
+                |(_, selection)| selection,
+            )),
+            ignore_token0,
+            right_brace,
+        )),
+        |(_, selection_list, _, _)| selection_list,
+    )(s)
+}
+
+fn selection(s: Span) -> Result<Selection> {
+    alt((
+        map(field, Selection::Field),
+        map(fragment_spread, Selection::FragmentSpread),
+        map(inline_fragment, Selection::InlineFragment),
+    ))(s)
+}
+
+fn field(s: Span) -> Result<Field> {
+    map(
+        tuple((
+            opt(map(
+                tuple((positioned(name), ignore_token0, colon, ignore_token0)),
+                |(name, _, _, _)| name,
+            )),
+            positioned(name),
+            map(
+                opt(tuple((ignore_token0, field_argument_list))),
+                |argument_list| {
+                    argument_list
+                        .map(|(_, argument_list)| argument_list)
+                        .unwrap_or_else(Vec::new)
+                },
+            ),
+            directive_list(UNEXTEND),
+            map(opt(selection_list), |selection_list| {
+                selection_list.unwrap_or_else(Vec::new)
+            }),
+        )),
+        |(alias, name, argument_list, directive_list, selection_list)| Field {
+            alias,
+            name,
+            argument_list,
+            selection_list,
+            directive_list,
+        },
+    )(s)
+}
+
+fn fragment_spread(s: Span) -> Result<FragmentSpread> {
+    map(
+        tuple((
+            tag("..."),
+            ignore_token0,
+            positioned(name),
+            directive_list(UNEXTEND),
+        )),
+        |(_, _, name, directive_list)| FragmentSpread {
+            name,
+            directive_list,
+        },
+    )(s)
+}
+
+fn inline_fragment(s: Span) -> Result<InlineFragment> {
+    map(
+        tuple((
+            tag("..."),
+            ignore_token0,
+            opt(definition_type("on")),
+            directive_list(UNEXTEND),
+            ignore_token0,
+            selection_list,
+        )),
+        |(_, _, on, directive_list, _, selection_list)| InlineFragment {
+            on,
+            selection_list,
+            directive_list,
+        },
+    )(s)
+}
+
+fn extend(s: Span) -> Result<bool> {
+    map(opt(tuple((tag("extend"), ignore_token1))), |extend| {
+        extend.is_some()
+    })(s)
+}
+
 fn definition_type<'a>(identifier: &'a str) -> impl Fn(Span<'a>) -> Result<Positioned<String>> {
     move |s: Span<'a>| {
         map(
-            tuple((
-                tag(identifier),
-                ignore_token1,
-                positioned(name),
-            )),
-            |(_, _, name)| name
+            tuple((tag(identifier), ignore_token1, positioned(name))),
+            |(_, _, name)| name,
         )(s)
     }
 }
@@ -355,7 +592,9 @@ fn enum_member(s: Span) -> Result<EnumMember> {
     )(s)
 }
 
-fn field_definition_list(should_exists: bool) -> impl Fn(Span) -> Result<Vec<Positioned<FieldDefinition>>> {
+fn field_definition_list(
+    should_exists: bool,
+) -> impl Fn(Span) -> Result<Vec<Positioned<FieldDefinition>>> {
     move |s| {
         let (s, field_definition_list) = match opt(tuple((
             ignore_token0,
@@ -513,7 +752,6 @@ fn value(s: Span) -> Result<Value> {
 }
 
 fn value_null(s: Span) -> Result<Value> {
-    dbg!(s);
     map(tag("null"), |_| Value::Null)(s)
 }
 
@@ -656,17 +894,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse() {
+    fn type_system() {
         let path_list = [
-            "tests/directives",
-            "tests/enums",
-            "tests/input_objects",
-            "tests/input_values",
-            "tests/interfaces",
-            "tests/objects",
-            "tests/scalars",
-            "tests/schema",
-            "tests/unions",
+            "tests/type_system/directives",
+            "tests/type_system/enums",
+            "tests/type_system/input_objects",
+            "tests/type_system/input_values",
+            "tests/type_system/interfaces",
+            "tests/type_system/objects",
+            "tests/type_system/scalars",
+            "tests/type_system/schema",
+            "tests/type_system/unions",
         ];
 
         for path in path_list.iter() {
@@ -674,7 +912,31 @@ mod tests {
                 if let Ok(entry) = entry {
                     let path = entry.path();
                     let source = std::fs::read_to_string(&path).unwrap();
-                    if let Err(error) = parse_schema(source.as_str()) {
+                    if let Err(error) = parse_type_system(source.as_str()) {
+                        dbg!(path);
+                        dbg!(error);
+                        panic!();
+                    };
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn executable() {
+        let path_list = [
+            "tests/executable/fragment",
+            "tests/executable/query",
+            "tests/executable/mutation",
+            "tests/executable/subscription",
+        ];
+
+        for path in path_list.iter() {
+            for entry in std::fs::read_dir(path).unwrap() {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    let source = std::fs::read_to_string(&path).unwrap();
+                    if let Err(error) = parse_executable(source.as_str()) {
                         dbg!(path);
                         dbg!(error);
                         panic!();

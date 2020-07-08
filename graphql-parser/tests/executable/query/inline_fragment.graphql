@@ -1,0 +1,47 @@
+{
+  ... {
+    foo
+  }
+}
+
+{
+  ... @foo {
+    bar
+  }
+}
+
+{
+  ... on Foo {
+    bar
+  }
+}
+
+{
+  ... on Foo @bar {
+    baz
+  }
+}
+
+query {
+  ... {
+    foo
+  }
+}
+
+query {
+  ... @foo {
+    bar
+  }
+}
+
+query {
+  ... on Foo {
+    bar
+  }
+}
+
+query {
+  ... on Foo @bar {
+    baz
+  }
+}

@@ -22,14 +22,56 @@ pub enum Value {
 
 #[derive(Debug, PartialEq)]
 pub struct Document {
-    pub definition_list: Vec<Positioned<Definition>>,
+    pub definition_list: Vec<Positioned<DocumentDefinition>>,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Definition {
+pub enum DocumentDefinition {
+    Operation(Positioned<OperationDefinition>),
+    Fragment(Positioned<FragmentDefinition>),
     Schema(Positioned<SchemaDefinition>),
     Type(Positioned<TypeDefinition>),
     Directive(Positioned<DirectiveDefinition>),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct TypeSystemDocument {
+    pub definition_list: Vec<Positioned<TypeSystemDefinition>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum TypeSystemDefinition {
+    Schema(Positioned<SchemaDefinition>),
+    Type(Positioned<TypeDefinition>),
+    Directive(Positioned<DirectiveDefinition>),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ExecutableDocument {
+    pub definition_list: Vec<Positioned<ExecutableDefinition>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ExecutableDefinition {
+    Operation(Positioned<OperationDefinition>),
+    Fragment(Positioned<FragmentDefinition>),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct OperationDefinition {
+    pub ty: OperationType,
+    pub name: Option<Positioned<String>>,
+    pub variable_list: Vec<Positioned<VariableDefinition>>,
+    pub selection_list: Vec<Positioned<Selection>>,
+    pub directive_list: Vec<Positioned<Directive>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct FragmentDefinition {
+    pub name: Positioned<String>,
+    pub on: Positioned<String>,
+    pub selection_list: Vec<Positioned<Selection>>,
+    pub directive_list: Vec<Positioned<Directive>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -38,6 +80,13 @@ pub struct SchemaDefinition {
     pub description: Option<Positioned<String>>,
     pub directive_list: Vec<Positioned<Directive>>,
     pub field_list: Vec<OperationField>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct VariableDefinition {
+    pub name: Positioned<String>,
+    pub ty: Positioned<Type>,
+    pub default_value: Option<Positioned<Value>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -123,6 +172,35 @@ pub struct DirectiveDefinition {
     pub name: Positioned<String>,
     pub argument_list: Vec<Positioned<FieldArgument>>,
     pub location_list: Vec<Positioned<DirectiveLocation>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Selection {
+    Field(Field),
+    FragmentSpread(FragmentSpread),
+    InlineFragment(InlineFragment),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Field {
+    pub name: Positioned<String>,
+    pub alias: Option<Positioned<String>>,
+    pub argument_list: Vec<Positioned<FieldArgument>>,
+    pub selection_list: Vec<Positioned<Selection>>,
+    pub directive_list: Vec<Positioned<Directive>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct FragmentSpread {
+    pub name: Positioned<String>,
+    pub directive_list: Vec<Positioned<Directive>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct InlineFragment {
+    pub on: Option<Positioned<String>>,
+    pub selection_list: Vec<Positioned<Selection>>,
+    pub directive_list: Vec<Positioned<Directive>>,
 }
 
 #[derive(Debug, PartialEq)]

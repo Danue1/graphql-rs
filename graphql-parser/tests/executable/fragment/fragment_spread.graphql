@@ -1,0 +1,7 @@
+fragment Foo on Bar {
+  ...Baz
+}
+
+fragment Foo on Bar {
+  ...Baz @bax
+}

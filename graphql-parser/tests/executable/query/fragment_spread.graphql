@@ -1,0 +1,15 @@
+{
+  ...Foo
+}
+
+{
+  ...Foo @bar
+}
+
+query {
+  ...Foo
+}
+
+query {
+  ...Foo @bar
+}

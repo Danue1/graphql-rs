@@ -1,0 +1,23 @@
+subscription {
+  ... {
+    foo
+  }
+}
+
+subscription {
+  ... @foo {
+    bar
+  }
+}
+
+subscription {
+  ... on Foo {
+    bar
+  }
+}
+
+subscription {
+  ... on Foo @bar {
+    baz
+  }
+}

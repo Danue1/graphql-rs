@@ -1,0 +1,43 @@
+{
+  foo: bar
+}
+
+{
+  foo: bar {
+    baz
+  }
+}
+
+{
+  foo {
+    bar: bar
+  }
+}
+
+{
+  foo: bar {
+    baz: bax
+  }
+}
+
+query FOO {
+  bar: baz
+}
+
+query FOO {
+  bar: baz {
+    bax
+  }
+}
+
+query FOO {
+  bar {
+    baz: bax
+  }
+}
+
+query FOO {
+  bar: baz {
+    bax: bac
+  }
+}

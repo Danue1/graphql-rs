@@ -1,0 +1,9 @@
+subscription FOO {
+  bar
+}
+
+subscription FOO {
+  bar {
+    baz
+  }
+}

@@ -131,6 +131,7 @@ char_empty!(
   '=' => equal,
   '@' => at,
   '&' => ampersand,
+  '$' => dollar,
   '!' => exclamation,
   '|' => pipeline,
   '"' => double_quote,

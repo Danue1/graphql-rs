@@ -1,0 +1,7 @@
+subscription FOO @bar {
+  baz
+}
+
+subscription FOO($bar: Bar) @baz {
+  baz
+}

@@ -1,0 +1,21 @@
+fragment FOO on Bar {
+  baz: bax
+}
+
+fragment FOO on Bar {
+  baz: bax {
+    bac
+  }
+}
+
+fragment FOO on Bar {
+  baz {
+    bax: bac
+  }
+}
+
+fragment FOO on Bar {
+  baz: bax {
+    bac: bav
+  }
+}

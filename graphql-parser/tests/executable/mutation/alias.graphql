@@ -1,0 +1,21 @@
+mutation FOO {
+  bar: baz
+}
+
+mutation FOO {
+  bar: baz {
+    bax
+  }
+}
+
+mutation FOO {
+  bar {
+    baz: bax
+  }
+}
+
+mutation FOO {
+  bar: baz {
+    bax: bac
+  }
+}

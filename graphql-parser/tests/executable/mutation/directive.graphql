@@ -1,0 +1,7 @@
+mutation FOO @bar {
+  baz
+}
+
+mutation FOO($bar: Bar) @baz {
+  baz
+}

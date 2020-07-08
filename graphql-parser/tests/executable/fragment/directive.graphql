@@ -1,0 +1,3 @@
+fragment FOO on Baz @bar {
+  bax
+}
