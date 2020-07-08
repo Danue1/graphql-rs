@@ -77,7 +77,7 @@ pub struct ObjectType {
     pub description: Option<Positioned<String>>,
     pub interface_list: Vec<Positioned<String>>,
     pub name: Positioned<String>,
-    pub field_list: Vec<Positioned<Field>>,
+    pub field_list: Vec<Positioned<FieldDefinition>>,
     pub directive_list: Vec<Positioned<Directive>>,
 }
 
@@ -86,7 +86,7 @@ pub struct InterfaceType {
     pub is_extend: bool,
     pub description: Option<Positioned<String>>,
     pub name: Positioned<String>,
-    pub field_list: Vec<Positioned<Field>>,
+    pub field_list: Vec<Positioned<FieldDefinition>>,
     pub directive_list: Vec<Positioned<Directive>>,
 }
 
@@ -113,7 +113,7 @@ pub struct InputObjectType {
     pub is_extend: bool,
     pub description: Option<Positioned<String>>,
     pub name: Positioned<String>,
-    pub field_list: Vec<Positioned<Field>>,
+    pub field_list: Vec<Positioned<FieldDefinition>>,
     pub directive_list: Vec<Positioned<Directive>>,
 }
 
@@ -126,7 +126,7 @@ pub struct DirectiveDefinition {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Field {
+pub struct FieldDefinition {
     pub description: Option<Positioned<String>>,
     pub name: Positioned<String>,
     pub argument_list: Vec<Positioned<FieldArgument>>,

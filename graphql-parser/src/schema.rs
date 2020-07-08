@@ -112,9 +112,7 @@ fn directive_definition(s: Span) -> Result<DirectiveDefinition> {
             description(UNEXTEND),
             tag("directive"),
             ignore_token0,
-            at,
-            ignore_token0,
-            positioned(name),
+            directive_name,
             ignore_token0,
             field_argument_list,
             tag("on"),
@@ -130,7 +128,7 @@ fn directive_definition(s: Span) -> Result<DirectiveDefinition> {
                 ),
             ),
         )),
-        |(description, _, _, _, _, name, _, argument_list, _, _, location_list)| {
+        |(description, _, _, name, _, argument_list, _, _, location_list)| {
             DirectiveDefinition {
                 description,
                 name,
@@ -141,18 +139,27 @@ fn directive_definition(s: Span) -> Result<DirectiveDefinition> {
     )(s)
 }
 
+fn directive_name(s: Span) -> Result<Positioned<String>> {
+    map(
+        tuple((
+            at,
+            ignore_token0,
+            positioned(name),
+        )),
+        |(_, _, name)| name
+    )(s)
+}
+
 fn scalar_type(s: Span) -> Result<ScalarType> {
     let (s, is_extend) = extend(s)?;
 
     map(
         tuple((
             description(is_extend),
-            tag("scalar"),
-            ignore_token1,
-            positioned(name),
+            definition_type("scalar"),
             directive_list(is_extend),
         )),
-        move |(description, _, _, name, directive_list)| ScalarType {
+        move |(description, name, directive_list)| ScalarType {
             is_extend,
             description,
             name,
@@ -163,11 +170,9 @@ fn scalar_type(s: Span) -> Result<ScalarType> {
 
 fn object_type(s: Span) -> Result<ObjectType> {
     let (s, is_extend) = extend(s)?;
-    let (s, (description, _, _, name, interface_list)) = tuple((
+    let (s, (description, name, interface_list, directive_list)) = tuple((
         description(is_extend),
-        tag("type"),
-        ignore_token1,
-        positioned(name),
+        definition_type("type"),
         map(
             opt(tuple((
                 ignore_token0,
@@ -187,23 +192,10 @@ fn object_type(s: Span) -> Result<ObjectType> {
                     .unwrap_or_else(Vec::new)
             },
         ),
+        directive_list(UNEXTEND)
     ))(s)?;
-    let (s, directive_list) = directive_list(UNEXTEND)(s)?;
-    let (s, field_list) = match opt(tuple((
-        ignore_token0,
-        left_brace,
-        ignore_token0,
-        field_list,
-        ignore_token0,
-        right_brace,
-    )))(s)?
-    {
-        (s, Some((_, _, _, field_list, _, _))) => (s, field_list),
-        (s, None) if is_extend && directive_list.is_empty() && interface_list.is_empty() => {
-            return Err(Error(ParsingError::Nom(s, ErrorKind::Char)))
-        }
-        (s, _) => (s, vec![]),
-    };
+    let (s, field_list) =
+        field_definition_list(is_extend && directive_list.is_empty() && interface_list.is_empty())(s)?;
 
     Ok((
         s,
@@ -220,28 +212,12 @@ fn object_type(s: Span) -> Result<ObjectType> {
 
 fn interface_type(s: Span) -> Result<InterfaceType> {
     let (s, is_extend) = extend(s)?;
-    let (s, (description, _, _, name, directive_list)) = tuple((
+    let (s, (description, name, directive_list)) = tuple((
         description(is_extend),
-        tag("interface"),
-        ignore_token1,
-        positioned(name),
+        definition_type("interface"),
         directive_list(UNEXTEND),
     ))(s)?;
-    let (s, field_list) = match opt(tuple((
-        ignore_token0,
-        left_brace,
-        ignore_token0,
-        field_list,
-        ignore_token0,
-        right_brace,
-    )))(s)?
-    {
-        (s, Some((_, _, _, field_list, _, _))) => (s, field_list),
-        (s, None) if is_extend && directive_list.is_empty() => {
-            return Err(Error(ParsingError::Nom(s, ErrorKind::Char)))
-        }
-        (s, _) => (s, vec![]),
-    };
+    let (s, field_list) = field_definition_list(is_extend && directive_list.is_empty())(s)?;
 
     Ok((
         s,
@@ -257,11 +233,9 @@ fn interface_type(s: Span) -> Result<InterfaceType> {
 
 fn union_type(s: Span) -> Result<UnionType> {
     let (s, is_extend) = extend(s)?;
-    let (s, (description, _, _, type_name, directive_list)) = tuple((
+    let (s, (description, definition_name, directive_list)) = tuple((
         description(is_extend),
-        tag("union"),
-        ignore_token1,
-        positioned(name),
+        definition_type("union"),
         directive_list(UNEXTEND),
     ))(s)?;
     let (s, member_list) = match opt(tuple((
@@ -287,7 +261,7 @@ fn union_type(s: Span) -> Result<UnionType> {
         UnionType {
             is_extend,
             description,
-            name: type_name,
+            name: definition_name,
             member_list,
             directive_list,
         },
@@ -296,11 +270,9 @@ fn union_type(s: Span) -> Result<UnionType> {
 
 fn enum_type(s: Span) -> Result<EnumType> {
     let (s, is_extend) = extend(s)?;
-    let (s, (description, _, _, name, directive_list)) = tuple((
+    let (s, (description, name, directive_list)) = tuple((
         description(is_extend),
-        tag("enum"),
-        ignore_token1,
-        positioned(name),
+        definition_type("enum"),
         directive_list(UNEXTEND),
     ))(s)?;
     let (s, member_list) = match opt(tuple((
@@ -336,28 +308,12 @@ fn enum_type(s: Span) -> Result<EnumType> {
 
 fn input_object_type(s: Span) -> Result<InputObjectType> {
     let (s, is_extend) = extend(s)?;
-    let (s, (description, _, _, name, directive_list)) = tuple((
+    let (s, (description, name, directive_list)) = tuple((
         description(is_extend),
-        tag("input"),
-        ignore_token1,
-        positioned(name),
+        definition_type("input"),
         directive_list(UNEXTEND),
     ))(s)?;
-    let (s, field_list) = match opt(tuple((
-        ignore_token0,
-        left_brace,
-        ignore_token0,
-        field_list,
-        ignore_token0,
-        right_brace,
-    )))(s)?
-    {
-        (s, Some((_, _, _, field_list, _, _))) => (s, field_list),
-        (s, None) if is_extend && directive_list.is_empty() => {
-            return Err(Error(ParsingError::Nom(s, ErrorKind::Char)))
-        }
-        (s, _) => (s, vec![]),
-    };
+    let (s, field_list) = field_definition_list(is_extend && directive_list.is_empty())(s)?;
 
     Ok((
         s,
@@ -369,6 +325,19 @@ fn input_object_type(s: Span) -> Result<InputObjectType> {
             directive_list,
         },
     ))
+}
+
+fn definition_type<'a>(identifier: &'a str) -> impl Fn(Span<'a>) -> Result<Positioned<String>> {
+    move |s: Span<'a>| {
+        map(
+            tuple((
+                tag(identifier),
+                ignore_token1,
+                positioned(name),
+            )),
+            |(_, _, name)| name
+        )(s)
+    }
 }
 
 fn enum_member(s: Span) -> Result<EnumMember> {
@@ -386,11 +355,27 @@ fn enum_member(s: Span) -> Result<EnumMember> {
     )(s)
 }
 
-fn field_list(s: Span) -> Result<Vec<Positioned<Field>>> {
-    separated_list(ignore_token1, positioned(field))(s)
+fn field_definition_list(should_exists: bool) -> impl Fn(Span) -> Result<Vec<Positioned<FieldDefinition>>> {
+    move |s| {
+        let (s, field_definition_list) = match opt(tuple((
+            ignore_token0,
+            left_brace,
+            ignore_token0,
+            separated_list(ignore_token1, positioned(field_definition)),
+            ignore_token0,
+            right_brace,
+        )))(s)?
+        {
+            (s, Some((_, _, _, field_list, _, _))) => (s, field_list),
+            (s, None) if should_exists => return Err(Error(ParsingError::Nom(s, ErrorKind::Char))),
+            (s, _) => (s, vec![]),
+        };
+
+        Ok((s, field_definition_list))
+    }
 }
 
-fn field(s: Span) -> Result<Field> {
+fn field_definition(s: Span) -> Result<FieldDefinition> {
     map(
         tuple((
             description(UNEXTEND),
@@ -402,7 +387,7 @@ fn field(s: Span) -> Result<Field> {
             positioned(ty),
             directive_list(UNEXTEND),
         )),
-        |(description, name, _, argument_list, _, _, ty, directive_list)| Field {
+        |(description, name, _, argument_list, _, _, ty, directive_list)| FieldDefinition {
             description,
             name,
             argument_list,
