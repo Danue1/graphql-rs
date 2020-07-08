@@ -19,3 +19,39 @@ extend type Foo implements Bar @baz
 extend type Foo implements Bar @baz {
   bax: Bax
 }
+
+extend type Foo implements Bar & Baz
+
+extend type Foo implements Bar & Baz {
+  bax: Bax
+}
+
+extend type Foo implements Bar & Baz @bax
+
+extend type Foo implements Bar & Baz @bax {
+  bac: Bac
+}
+
+extend type Foo implements & Bar @baz
+
+extend type Foo implements & Bar @baz {
+  bax: Bax
+}
+
+extend type Foo implements & Bar & Baz @bax
+
+extend type Foo implements & Bar & Baz @bax {
+  bac: Bac
+}
+
+extend type Foo implements & Bar & Baz
+
+extend type Foo implements & Bar & Baz {
+  bax: Bax
+}
+
+extend type Foo implements & Bar & Baz @bax
+
+extend type Foo implements & Bar & Baz @bax {
+  bac: Bac
+}

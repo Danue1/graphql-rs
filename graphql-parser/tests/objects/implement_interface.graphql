@@ -3,3 +3,21 @@ type Foo implements Bar
 type Foo implements Bar {
   baz: Baz
 }
+
+type Foo implements Bar & Baz
+
+type Foo implements Bar & Baz {
+  bax: Bax
+}
+
+type Foo implements & Bar
+
+type Foo implements & Bar {
+  baz: Baz
+}
+
+type Foo implements & Bar & Baz
+
+type Foo implements & Bar & Baz {
+  bax: Bax
+}
